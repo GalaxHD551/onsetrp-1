@@ -195,6 +195,7 @@ CREATE TABLE IF NOT EXISTS `player_garage` (
   `garage` tinyint(1) NOT NULL,
   `price` int(11) NOT NULL,
   `fuel` int(11) NOT NULL DEFAULT 100,
+  `health` int(11) NOT NULL DEFAULT 5000,
   `inventory` text DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `player_vehicle_ibfk_1` (`ownerid`),
