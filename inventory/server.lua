@@ -3,6 +3,9 @@ local _ = function(k, ...) return ImportPackage("i18n").t(GetPackageName(), k, .
 local inventory_base_max_slots = 50
 local backpack_slot_to_add = 35
 
+local REPAIR_KIT_HEALTH = 2500
+local REPAIR_KIT_TIME = 6
+
 local droppedObjectsPickups = {}
 
 AddRemoteEvent("ServerPersonalMenu", function(player, inVehicle, vehiclSpeed)
@@ -204,23 +207,44 @@ AddRemoteEvent("UseInventory", function(player, originInventory, itemName, amoun
             if itemName == "repair_kit" then
                 local nearestCar = GetNearestCar(player)
                 if nearestCar ~= 0 then
-                    if GetVehicleHealth(nearestCar) > 4000 then
+
+                    if GetVehicleHealth(nearestCar) >= 5000 then
                         CallRemoteEvent(player, "MakeErrorNotification", _("dont_need_repair"))
-                    elseif GetVehicleHoodRatio(nearestCar) < 5 and GetVehicleModel(nearestCar) ~= 10 and GetVehicleModel(nearestCar) ~= 24 then
-                        CallRemoteEvent(player, "MakeErrorNotification", _("need_to_open_hood"))
                     else
                         CallRemoteEvent(player, "LockControlMove", true)
                         SetPlayerAnimation(player, "COMBINE")
-                        Delay(4000, function()
+                        SetPlayerBusy(player)
+                        CallRemoteEvent(player, "loadingbar:show", _("repairing"), REPAIR_KIT_TIME)-- LOADING BAR
+                        Delay(REPAIR_KIT_TIME * 1000, function()
                             RemoveInventory(originInventory, itemName, amount)
-                            SetVehicleHealth(nearestCar, 5000)
-                            for i = 1, 8 do
-                                SetVehicleDamage(nearestCar, i, 0)
-                            end
+                            SetVehicleHealth(nearestCar, GetVehicleHealth(nearestCar) + REPAIR_KIT_HEALTH)     
+                            if GetVehicleHealth(nearestCar) > 5000 then SetVehicleHealth(nearestCar, 5000) end   
                             CallRemoteEvent(player, "LockControlMove", false)
                             SetPlayerAnimation(player, "STOP")
+                            SetPlayerNotBusy(player)
+                            CallRemoteEvent(player, "MakeNotification", _("repair_kit_vehicle_repaired"), "linear-gradient(to right, #00b09b, #96c93d)")
                         end)
                     end
+                    
+
+
+                    -- if GetVehicleHealth(nearestCar) > 4000 then
+                    --     CallRemoteEvent(player, "MakeErrorNotification", _("dont_need_repair"))
+                    -- elseif GetVehicleHoodRatio(nearestCar) < 5 and GetVehicleModel(nearestCar) ~= 10 and GetVehicleModel(nearestCar) ~= 24 then
+                    --     CallRemoteEvent(player, "MakeErrorNotification", _("need_to_open_hood"))
+                    -- else
+                    --     CallRemoteEvent(player, "LockControlMove", true)
+                    --     SetPlayerAnimation(player, "COMBINE")
+                    --     Delay(4000, function()
+                    --         RemoveInventory(originInventory, itemName, amount)
+                    --         SetVehicleHealth(nearestCar, 5000)
+                    --         for i = 1, 8 do
+                    --             SetVehicleDamage(nearestCar, i, 0)
+                    --         end
+                    --         CallRemoteEvent(player, "LockControlMove", false)
+                    --         SetPlayerAnimation(player, "STOP")
+                    --     end)
+                    -- end
                 end
             end
             if itemName == "jerican" then

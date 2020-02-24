@@ -30,7 +30,7 @@ VehicleTrunkSlots = { -- slots for vehicles
     vehicle_25 = 160
 }
 
-function CreateVehicleData(player, vehicle, modelid, fuel)
+function CreateVehicleData(player, vehicle, modelid, fuel, health)
     VehicleData[vehicle] = {}
 
     local fuel = fuel or 100
@@ -41,6 +41,7 @@ function CreateVehicleData(player, vehicle, modelid, fuel)
     VehicleData[vehicle].inventory = {}
     VehicleData[vehicle].keys = {}
     VehicleData[vehicle].fuel = fuel
+    VehicleData[vehicle].health = health or 5000
 
     print("Data created for : "..vehicle)
 end
@@ -115,10 +116,12 @@ end
 AddEvent("OnPackageStart", OnPackageStart)
 
 function SaveVehicleData(vehicle) 
-    local query = mariadb_prepare(sql, "UPDATE player_garage SET ownerid = '?', inventory = '?', fuel = ? WHERE id = '?' LIMIT 1;",
+    VehicleData[vehicle].fuel = GetVehicleHealth(vehicle)    
+    local query = mariadb_prepare(sql, "UPDATE player_garage SET ownerid = '?', inventory = '?', fuel = ?, health = ? WHERE id = '?' LIMIT 1;",
     VehicleData[vehicle].owner,
     json_encode(VehicleData[vehicle].inventory),
     VehicleData[vehicle].fuel,
+    VehicleData[vehicle].health,
     VehicleData[vehicle].garageid
     )
     
