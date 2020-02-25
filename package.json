@@ -43,7 +43,8 @@
         "admin/s_spectate.lua",
         "searchobject/server.lua",
         "callouts/s_callouts.lua",
-        "onset-characterize/server.lua"
+        "onset-characterize/server.lua",
+        "taxi/s_taxi.lua"
     ],
     "client_scripts": [
         "welcome/client.lua",
@@ -93,7 +94,8 @@
         "admin/c_spectate.lua",
         "searchobject/client.lua",
         "callouts/c_callouts.lua",
-        "onset-characterize/client.lua"
+        "onset-characterize/client.lua",
+        "taxi/c_taxi.lua"
     ],
     "files": [
         "hud/speaking/speaking.png",
@@ -240,6 +242,7 @@
         "onset-characterize/ui/jquery.js",
         "onset-characterize/ui/style.css",
         "onset-characterize/click.wav",
-        "admin/broadcastui/broadcastui.html"
+        "admin/broadcastui/broadcastui.html",
+        "taxi/taxihud.html"
     ]
 }
