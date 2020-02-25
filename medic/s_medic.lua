@@ -229,6 +229,7 @@ function SpawnMedicCar(player)-- to spawn an ambulance
             end
         end
         local vehicle = CreateVehicle(8, spawnPoint.x, spawnPoint.y, spawnPoint.z, spawnPoint.h)
+        SetVehicleLicensePlate(vehicle, "MED-"..PlayerData[player].accountid) 
         
         PlayerData[player].job_vehicle = vehicle
         CreateVehicleData(player, vehicle, 3)

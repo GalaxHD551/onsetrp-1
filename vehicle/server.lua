@@ -30,7 +30,7 @@ VehicleTrunkSlots = { -- slots for vehicles
     vehicle_25 = 160
 }
 
-function CreateVehicleData(player, vehicle, modelid, fuel, health)
+function CreateVehicleData(player, vehicle, modelid, fuel, health, licensePlate)
     VehicleData[vehicle] = {}
 
     local fuel = fuel or 100
@@ -42,6 +42,7 @@ function CreateVehicleData(player, vehicle, modelid, fuel, health)
     VehicleData[vehicle].keys = {}
     VehicleData[vehicle].fuel = fuel
     VehicleData[vehicle].health = health or 5000
+    VehicleData[vehicle].license_plate = licensePlate or 'AA-111-AA'
 
     print("Data created for : "..vehicle)
 end
