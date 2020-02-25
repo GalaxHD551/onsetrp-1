@@ -182,7 +182,7 @@ function genPlateRandomNumber(nb)
 	local value = ""
 	for 1, nb do
 		math.randomseed(os.time())
-    	value = value .. "" ..tostring(math.random(1,9))
+    	value = value .. "" ..tostring(math.random(0,9))
 	end	
 	return value
 end
