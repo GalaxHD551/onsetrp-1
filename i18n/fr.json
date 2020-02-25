@@ -629,7 +629,7 @@
     "delivery_desc": "Ce service nécessite le dépot de {1} $ de location pour le véhicule de fonction. Si vous le rendez en état vous serez remboursé en quasi-totalité.",
     "delivery_start_success": "Le montant de la location a bien été prélevé, votre véhicule vous attend.",
     "delivery_need_delivery_truck": "Vous avez besoin de votre camion de livraison pour faire ça",
-        "taxi_job": "Chauffeur de taxi",
+    "taxi_job": "Chauffeur de taxi",
     "taxi_menu": "Menu Taxi",
     "taxi_garage_menu": "Garage taxi",
     "spawn_taxi_car": "Sortir un taxi",
