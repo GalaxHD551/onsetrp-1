@@ -251,6 +251,7 @@ AddRemoteEvent("UseInventory", function(player, originInventory, itemName, amoun
                             RemoveInventory(originInventory, itemName, amount)
                             VehicleData[nearestCar].fuel = VehicleData[nearestCar].fuel + JERICAN_FUEL_AMOUNT   
                             if VehicleData[nearestCar].fuel > 100 then VehicleData[nearestCar].fuel = 100 end
+                            SetVehiclePropertyValue(nearestCar, "fuel", VehicleData[nearestCar].fuel, true)
                             CallRemoteEvent(player, "LockControlMove", false)
                             SetPlayerAnimation(player, "STOP")
                             SetPlayerNotBusy(player)
