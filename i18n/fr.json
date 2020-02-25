@@ -632,5 +632,17 @@
     "delivery_need_delivery_truck": "Vous avez besoin de votre camion de livraison pour faire ça",
     "repair_kit_vehicle_repaired": "Vous avez réparer une partie des dégats de votre véhicule",
     "vehicle_hardly_damaged": "Votre véhicule est énormement endommagé. Vous devriez contacter un dépanneur ou utiliser un kit de réparation rapidement.",
-    "repairing": "Réparation"
+    "repairing": "Réparation",
+    "vert_bambou": "Vert Bambou",
+    "marron": "Marron",
+    "bleu_galaxie": "Bleu Galaxie",
+    "rouge_bordeau": "Rouge Bordeau",
+    "rose": "Rose",
+    "jaune": "Jaune",
+    "turquoise": "Turquoise",
+    "blanc": "Blanc",
+    "gris_clair": "Gris clair",
+    "gris_fonce": "Gris foncé",
+    "gris_titanium": "Gris Titanium",
+    "violet_fonce": "Violet foncé"
 }

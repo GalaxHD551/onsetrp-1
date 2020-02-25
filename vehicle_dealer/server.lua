@@ -7,7 +7,19 @@ CarDefaultColors = {
 	red = "FF0000",
 	blue = "0000FF",
 	green = "00FF00",
-	orange = "FF6600"
+	orange = "FF6600",
+	vert_bambou = "003916",
+	marron = "6b3800",
+	bleu_galaxie = "1c0058",
+	rouge_bordeau = "6b0000",
+	rose = "ff15b5",
+	jaune = "fdff03",
+	turquoise = "00d095",
+	blanc = "ffffff",
+	gris_clair = "c0c0c0",
+	gris_fonce = "555555",
+	gris_titanium = "586977",
+	violet_fonce = "3e0052"
 }
 
 CarDefaultVehicles = {
