@@ -293,7 +293,7 @@ function GetNearestCar(player)
         local x2, y2, z2 = GetVehicleLocation(v)
         local dist = GetDistance3D(x, y, z, x2, y2, z2)
 
-        if dist < 300.0 then
+        if dist < 400.0 then
             return v
         end
     end
