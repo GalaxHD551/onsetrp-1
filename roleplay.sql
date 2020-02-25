@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS `accounts` (
   `driver_license` tinyint(1) NOT NULL DEFAULT '0',
   `gun_license` tinyint(1) NOT NULL DEFAULT '0',
   `helicopter_license` tinyint(1) NOT NULL DEFAULT '0',
+  `taxi_license` tinyint(1) NOT NULL DEFAULT '0',
   `drug_knowledge` text NOT NULL,
   `job` varchar(20) DEFAULT NULL,
   `is_cuffed` tinyint(1) NOT NULL DEFAULT '0',
