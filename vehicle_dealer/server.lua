@@ -158,9 +158,9 @@ function genLicensePlate()
 	local plate = ""
 
 	-- FIRST 2 LETTERS
-	plate = plate .. genPlateRandomLetter(2)
+	plate = plate .. genPlateRandomLetter(2) .. "-"
 	-- 3 MIDDLE NUMBERS
-	plate = plate .. genPlateRandomNumber(3)
+	plate = plate .. genPlateRandomNumber(3) .. "-"
 	-- LAST 2 LETTERS
 	plate = plate .. genPlateRandomLetter(2)
 
