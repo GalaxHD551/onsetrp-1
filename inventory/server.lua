@@ -4,7 +4,10 @@ local inventory_base_max_slots = 50
 local backpack_slot_to_add = 35
 
 local REPAIR_KIT_HEALTH = 2500
-local REPAIR_KIT_TIME = 15
+local REPAIR_KIT_TIME = 20
+
+local JERICAN_FUEL_AMOUNT = 50
+local JERICAN_TIME = 15
 
 local droppedObjectsPickups = {}
 
@@ -205,6 +208,9 @@ AddRemoteEvent("UseInventory", function(player, originInventory, itemName, amoun
                 UseItem(player, originInventory, item, amount)
             end
             if itemName == "repair_kit" then
+                if GetPlayerVehicle(player) ~= nil then
+                    CallRemoteEvent(player, "MakeErrorNotification", _("cant_while_driving"))
+                end                
                 local nearestCar = GetNearestCar(player)
                 if not IsValidVehicle(nearestCar) then return end                
                 if nearestCar ~= 0 then
@@ -228,24 +234,28 @@ AddRemoteEvent("UseInventory", function(player, originInventory, itemName, amoun
                 end
             end
             if itemName == "jerican" then
-                if GetPlayerState(player) >= 2 then
-                    CallRemoteEvent(player, "MakeSuccessNotification", _("cant_while_driving"))
-                else
-                    local nearestCar = GetNearestCar(player)
-                    if nearestCar ~= 0 then
-                        if VehicleData[nearestCar].fuel >= 100 then
-                            CallRemoteEvent(player, "MakeErrorNotification", _("car_full"))
-                        else
-                            CallRemoteEvent(player, "LockControlMove", true)
-                            SetPlayerAnimation(player, "COMBINE")
-                            Delay(4000, function()
-                                RemoveInventory(originInventory, itemName, amount)
-                                VehicleData[nearestCar].fuel = 100
-                                CallRemoteEvent(player, "MakeSuccessNotification", _("car_refuelled"))
-                                CallRemoteEvent(player, "LockControlMove", false)
-                                SetPlayerAnimation(player, "STOP")
-                            end)
-                        end
+                if GetPlayerVehicle(player) ~= nil then
+                    CallRemoteEvent(player, "MakeErrorNotification", _("cant_while_driving"))
+                end 
+                local nearestCar = GetNearestCar(player)
+                if not IsValidVehicle(nearestCar) then return end                
+                if nearestCar ~= 0 then
+                    if VehicleData[nearestCar].fuel >= 100 then
+                        CallRemoteEvent(player, "MakeErrorNotification", _("car_full"))
+                    else
+                        CallRemoteEvent(player, "LockControlMove", true)
+                        SetPlayerAnimation(player, "COMBINE")
+                        SetPlayerBusy(player)
+                        CallRemoteEvent(player, "loadingbar:show", _("refuel"), JERICAN_TIME)-- LOADING BAR
+                        Delay(JERICAN_TIME * 1000, function()
+                            RemoveInventory(originInventory, itemName, amount)
+                            VehicleData[nearestCar].fuel = VehicleData[nearestCar].fuel + JERICAN_FUEL_AMOUNT   
+                            if VehicleData[nearestCar].fuel > 100 then VehicleData[nearestCar].fuel = 100 end
+                            CallRemoteEvent(player, "LockControlMove", false)
+                            SetPlayerAnimation(player, "STOP")
+                            SetPlayerNotBusy(player)
+                            CallRemoteEvent(player, "MakeNotification", _("car_refuelled_for", JERICAN_FUEL_AMOUNT, 'L'), "linear-gradient(to right, #00b09b, #96c93d)")
+                        end)
                     end
                 end
             end
