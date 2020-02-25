@@ -40,6 +40,9 @@ AddEvent("OnPlayerSteamAuth", OnPlayerSteamAuth)
 
 function OnPlayerQuit(player)
     PlayerData[player].is_online = 0
+    if PlayerData[player].job == "taxi" or PlayerData[player].job == "delivery" then
+        PlayerData[player].job = ""
+    end
     SavePlayerAccount(player)
     GatheringCleanPlayerActions(player)-- → Gathering
     DestroyPlayerData(player)
@@ -103,7 +106,7 @@ function OnAccountCheckIpBan(player)
 end
 
 function CreatePlayerAccount(player)
-    local query = mariadb_prepare(sql, "INSERT INTO `accounts` (`id`, `steamid`, `name`, `clothing`, `police`, `medic`, `inventory`, `position`, `admin`, `health`, `health_state`, `death_pos`, `armor`, `thirst`, `hunger`, `bank_balance`, `created`, `phone_number`, `driver_license`, `gun_license`, `helicopter_license`, `drug_knowledge`, `job`, `is_cuffed`, `age`) VALUES (NULL, '?', 'Unregistered', '[]', '0', '0', '[]', '[]', '0', '100', 'alive', '', '0', '100', '100', '4900', '0', NULL, '0', '0', '0', '[]', NULL, '0', '0');",
+    local query = mariadb_prepare(sql, "INSERT INTO `accounts` (`id`, `steamid`, `name`, `clothing`, `police`, `medic`, `inventory`, `position`, `admin`, `health`, `health_state`, `death_pos`, `armor`, `thirst`, `hunger`, `bank_balance`, `created`, `phone_number`, `driver_license`, `gun_license`, `helicopter_license`, `taxi_license`, `drug_knowledge`, `job`, `is_cuffed`, `age`) VALUES (NULL, '?', 'Unregistered', '[]', '0', '0', '[]', '[]', '0', '100', 'alive', '', '0', '100', '100', '4900', '0', NULL, '0', '0', '0', '0', '[]', NULL, '0', '0');",
         tostring(GetPlayerSteamId(player)))
     
     mariadb_query(sql, query, OnAccountCreated, player)
@@ -150,6 +153,7 @@ function OnAccountLoaded(player)
         PlayerData[player].driver_license = math.tointeger(result['driver_license'])
         PlayerData[player].gun_license = math.tointeger(result['gun_license'])
         PlayerData[player].helicopter_license = math.tointeger(result['helicopter_license'])
+        PlayerData[player].taxi_license = math.tointeger(result['taxi_license'])
         PlayerData[player].inventory = json_decode(result['inventory'])
         PlayerData[player].created = math.tointeger(result['created'])
         PlayerData[player].position = json_decode(result['position'])
@@ -259,6 +263,7 @@ function CreatePlayerData(player)
     PlayerData[player].driver_license = 0
     PlayerData[player].gun_license = 0
     PlayerData[player].helicopter_license = 0
+    PlayerData[player].taxi_license = 0
     PlayerData[player].logged_in = false
     PlayerData[player].admin = 0
     PlayerData[player].created = 0
@@ -286,11 +291,11 @@ function DestroyPlayerData(player)
         return
     end
     
-    -- if PlayerData[player].job_vehicle ~= nil then
-    --     DestroyVehicle(PlayerData[player].job_vehicle)
-    --     DestroyVehicleData(PlayerData[player].job_vehicle)
-    --     PlayerData[player].job_vehicle = nil
-    -- end
+    if PlayerData[player].job_vehicle ~= nil then
+        DestroyVehicle(PlayerData[player].job_vehicle)
+        DestroyVehicleData(PlayerData[player].job_vehicle)
+        PlayerData[player].job_vehicle = nil
+    end
 
     local attachedObjects = { "backpack", "mask_1", "mask_2", "mask_3", "mask_4" }
 
@@ -301,7 +306,6 @@ function DestroyPlayerData(player)
         end
     end
     
-    print("Player disconnected : " .. PlayerData[player].accountid)
     PlayerData[player] = nil
     print("Data destroyed for : " .. player)
 end
@@ -321,7 +325,7 @@ function SavePlayerAccount(player)
     local x, y, z = GetPlayerLocation(player)
     PlayerData[player].position = {x = x, y = y, z = z}
     
-    local query = mariadb_prepare(sql, "UPDATE accounts SET admin = ?, bank_balance = ?, health = ?, armor = ?, hunger = ?, thirst = ?, name = '?', clothing = '?', inventory = '?', created = '?', position = '?', driver_license = ?, gun_license = ?, helicopter_license = ?, drug_knowledge = '?', job = '?', is_cuffed = ?, age = ?, is_online = '?' WHERE id = ? LIMIT 1;",
+    local query = mariadb_prepare(sql, "UPDATE accounts SET admin = ?, bank_balance = ?, health = ?, armor = ?, hunger = ?, thirst = ?, name = '?', clothing = '?', inventory = '?', created = '?', position = '?', driver_license = ?, gun_license = ?, helicopter_license = ?, taxi_license = ?, drug_knowledge = '?', job = '?', is_cuffed = ?, age = ?, is_online = '?' WHERE id = ? LIMIT 1;",
         PlayerData[player].admin,
         PlayerData[player].bank_balance,
         PlayerData[player].health,
@@ -336,6 +340,7 @@ function SavePlayerAccount(player)
         PlayerData[player].driver_license,
         PlayerData[player].gun_license,
         PlayerData[player].helicopter_license,
+        PlayerData[player].taxi_license,
         json_encode(PlayerData[player].drug_knowledge),
         PlayerData[player].job or "",
         PlayerData[player].is_cuffed or 0,
