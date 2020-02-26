@@ -570,8 +570,8 @@ AddRemoteEvent("ObjectDrop", function(player, bool, item, amount)
                         SetPlayerAnimation(player, "CARRY_SHOULDER_SETDOWN")
                     end)
                     break
-                end
-            end
+               end
+           end
         else
             SetPlayerWeapon(player, 1, 0, true, slot)
             SetPlayerAnimation(player, "CARRY_SHOULDER_SETDOWN")
