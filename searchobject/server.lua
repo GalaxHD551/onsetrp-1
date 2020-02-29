@@ -121,35 +121,6 @@ AddRemoteEvent("Unsit", function(player)
     	end
 end)
 
-AddRemoteEvent("DeleteText", function(player, text3d)
-    _text3d = text3d
-    local closest = { id = nil, distance = nil }
-    local x, y, z = GetPlayerLocation(player)
-    if _text3d ~= nil then
-        for k, v in pairs(_text3d) do
-            if GetText3DPropertyValue(v, "textitem") ~= nil and GetText3DPropertyValue(v, "textitem") then
-                local x2, y2, z2 = GetText3DLocation(v)
-                local distance = GetDistance3D(x, y, z, x2, y2, z2)
-                if closest.id == nil or closest.distance == nil then
-                    closest.id = v
-                    closest.distance = distance
-                else
-                    if distance < closest.distance then
-                        closest.id = v
-                        closest.distance = distance
-                    end
-                end
-            end
-        end
-
-        if closest.id and closest.distance ~= nil then
-            if closest.distance / 100 < 1.5 then
-                DestroyText3D(closest.id)
-            end
-        end
-    end
-end)
-
 function ablecol(player, Pstream, objectId, condi, xL, yL, zL)
 	_Pstream = Pstream
     local objet = objectId
