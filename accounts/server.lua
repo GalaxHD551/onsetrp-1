@@ -110,9 +110,7 @@ function OnAccountCheckIpBan(player)
 end
 
 function CreatePlayerAccount(player)
-
     local query = mariadb_prepare(sql, "INSERT INTO `accounts` (`id`, `steamid`, `name`, `clothing`, `police`, `medic`, `inventory`, `position`, `admin`, `health`, `armor`, `thirst`, `hunger`, `bank_balance`, `created`, `phone_number`, `driver_license`, `gun_license`, `helicopter_license`, `taxi_license`, `drug_knowledge`, `job`, `is_cuffed`, `age`) VALUES (NULL, '?', 'Unregistered', '[]', '0', '0', '[]', '[]', '0', '100', '0', '100', '100', '4900', '0', NULL, '0', '0', '0', '0', '[]', NULL, '0', '0');",
-
         tostring(GetPlayerSteamId(player)))
     
     mariadb_query(sql, query, OnAccountCreated, player)
