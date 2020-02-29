@@ -37,7 +37,7 @@ end)
 
 AddEvent("OnTranslationReady", function()
         -- TAXI MENU
-        taxiMenu = Dialog.create(_("taxi_menu"), nil, _("start_course"), _("end_course"), _("payement"), _("callouts"), _("callouts_menu_end_callout"), _("cancel"))
+        taxiMenu = Dialog.create(_("taxi_menu"), nil, _("start_course"), _("end_course"), _("payement"), --[[_("callouts"), _("callouts_menu_end_callout"),]] _("cancel"))
 
         -- SPAWN VEHICLE MENU
         taxiNpcGarageMenu = Dialog.create(_("taxi_garage_menu"), nil, _("spawn_taxi_car"), _("cancel"))
@@ -104,12 +104,12 @@ AddEvent("OnDialogSubmit", function(dialog, button, ...)
         if button == 3 then
             Dialog.show(taxiPayMenu)
         end
-        if button == 4 then -- take callout
+        --[[if button == 4 then -- take callout
             CallEvent("callouts:openingmenu")                        
         end
         if button == 5 then -- end callout
             CallEvent("callouts:stoppingcallout")         
-        end
+        end]]
     end
     
     if dialog == taxiNpcGarageMenu then
