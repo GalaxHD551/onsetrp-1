@@ -72,21 +72,34 @@ end
 function SendGPStoTaxi(player, callout)
     local target = player
     label = _("taxi_waypoint_label")
-    SetPlayerPropertyValue(player, "Caller", true, true)
+    if GetPlayerPropertyValue(target, "Caller") ~= nil then
+        DPickup = GetPlayerPropertyValue(target, "Caller")
+        if IsValidPickup(DPickup) then
+            current_call = true
+        end
+    end
+    local TaxiPickup = CreatePickup(336, callOuts[tonumber(target)].location.x, callOuts[tonumber(target)].location.y, callOuts[tonumber(target)].location.z)
+    SetPickupScale(TaxiPickup, 40, 40, 4)
+    SetPickupPropertyValue(TaxiPickup, "TaxiCall", true, true)
+    SetPlayerPropertyValue(target, "Caller", TaxiPickup, true)
     for k, v in pairs(GetAllPlayers()) do
         if PlayerData[v] ~= nil and PlayerData[v].job ~= nil and PlayerData[v].job ~= "" and callout.job == PlayerData[v].job then
             if callout.job == "taxi" then
+                if current_call then
+                    CallRemoteEvent(v, "DestroyTaxiWP", DPickup)
+                end
                 CallRemoteEvent(v, "medic:deathalarm")
-                CallRemoteEvent(v, "callouts:createwp", tonumber(target), callOuts[tonumber(target)].location.x, callOuts[tonumber(target)].location.y, callOuts[tonumber(target)].location.z, label)
-
-                Delay(360000, function()
-                    callOuts[tonumber(target)] = nil
-                    UpdateCalloutsList(player)
-                    CallRemoteEvent(v, "callouts:cleanwp", tonumber(target))
-                end)
+                CallRemoteEvent(v, "callouts:createtaxiwp", callOuts[tonumber(target)].location.x, callOuts[tonumber(target)].location.y, callOuts[tonumber(target)].location.z, label)
             end
         end
     end
+
+    Delay(360000, function()
+        if TaxiPickup ~= nil then
+            DestroyPickup(TaxiPickup)
+            SetPlayerPropertyValue(target, "Caller", nil, true)
+        end
+    end)
 end
 
 function CalloutTake(player, target)-- allow  to take the callout
@@ -155,7 +168,7 @@ function UpdateCalloutsList(player, job)
 end
 
 function GetCalloutsList(player)
-    if PlayerData[player].job ~= "medic" and PlayerData[player].job ~= "police" and PlayerData[player].job ~= "taxi" then return { } end
+    if PlayerData[player].job ~= "medic" and PlayerData[player].job ~= "police" then return { } end
 
     local x,y,z = GetPlayerLocation(player)
     
@@ -193,11 +206,27 @@ end
 
 --------- CALLOUTS END
 
---[[AddRemoteEvent("DestroyWp", function (waypt, caller)
-    for k, v in pairs(GetAllPlayers()) do
-        if PlayerData[v] ~= nil and PlayerData[v].job == "taxi" then
-            CallRemoteEvent(v, "callouts:destroywptaxi", waypt)
+AddEvent("OnPlayerPickupHit", function(player, pickup) -- Destroy pickup
+    if GetPickupPropertyValue(pickup, "TaxiCall") then
+        if PlayerData[player].job ~= "taxi" then return end
+            local vehicle = GetPlayerVehicle(player)
+            if vehicle == nil then return end
+            local seat = GetPlayerVehicleSeat(player)
+            if vehicle == PlayerData[player].job_vehicle and
+                VehicleData[vehicle].owner == PlayerData[player].accountid and
+                seat == 1
+            then
+            for k, v in pairs(GetAllPlayers()) do
+                if PlayerData[v] ~= nil and PlayerData[v].job == "taxi" then
+                    CallRemoteEvent(v, "DestroyTaxiWP", pickup)
+                end
+            end
         end
     end
-    SetPlayerPropertyValue(caller, "Caller", false, true)
-end)]]
+end)
+
+AddRemoteEvent("DestroyPickup", function(player, pickup)
+    if pickup ~= nil and IsValidPickup(pickup) then
+        DestroyPickup(pickup)
+    end
+end)
