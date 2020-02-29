@@ -89,7 +89,7 @@ AddRemoteEvent("callouts:createtaxiwp", function(x, y, z, label)
     end)
 end)
 
-AddRemoteEvent("callouts:createwp", function(x, y, z, label)
+AddRemoteEvent("callouts:createwp", function(target, x, y, z, label)
     if wpObject ~= nil then DestroyWaypoint(wpObject) end
     currentCallout = target
     wpObject = CreateWaypoint(x, y, z, tostring(label))
