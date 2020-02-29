@@ -89,8 +89,11 @@ AddEvent("PickupItem", function(player, object)
     	else
 		SetPlayerAnimation(player, "STOP")
 		SetPlayerAnimation(player, "PICKUP_LOWER")
+		if GetObjectPropertyValue(object, "textid") ~= nil then
+            		local text3d = GetObjectPropertyValue(object, "textid")
+           		 DestroyText3D(text3d)
+        	end
 		DestroyObject(object)
-		CallRemoteEvent(player, "GetText")
 		SavePlayerAccount(player)
 		CallRemoteEvent(player, "MakeNotification", _("store_item"), "linear-gradient(to right, #00b09b, #96c93d)")
     	end
