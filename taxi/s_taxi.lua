@@ -2,9 +2,7 @@ local _ = function(k, ...) return ImportPackage("i18n").t(GetPackageName(), k, .
 
 local MAX_TAXI = 10 -- Number of taximens at the same time
 local ALLOW_RESPAWN_VEHICLE = true -- Allow the respawn of the vehicle by destroying the previously spawned one. (Can break RP if the car is stolen or need repairs or fuel)
-local CAUTION = 1500 -- Amount of the commission
-local state = false
-local TaxiState = false
+local CAUTION = 1500 -- Amount of the caution
 
 local occupants = {}
 
@@ -220,29 +218,33 @@ end)
 --------- INTERACTIONS
 
 function StartCourse(player)
-    local taxiID = GetPlayerVehicle(player)
-    if taxiID ~= 0 then     -- Check if player in vehicle
+    taximan = player
+    local taxiID = GetPlayerVehicle(taximan)
+    if taxiID ~= 0 then     -- Check if taximan in vehicle
         local vehID = GetVehicleModel(taxiID)
-        if vehID == 2 then      -- Check if player in taxi
+        if vehID == 2 then      -- Check if taximan in taxi
             local playerDriver = GetVehicleDriver(taxiID)
-            if player == playerDriver then  -- Check if taximan is driver
-                local occupants = GetClientInTaxi(player, taxiID)     
-                if occupants ~= nil then          -- Check if there is client in taxi
-                    state = true    
-                    for k, v in ipairs(occupants) do
-                        CallRemoteEvent(v, "course", state)
+            if taximan == playerDriver then  -- Check if taximan is driver
+                if GetPlayerPropertyValue(taximan, "TaxiOcupped") == nil or not GetPlayerPropertyValue(taximan, "TaxiOcupped") then -- Check if course not in progress
+                    local occupants = GetClientInTaxi(taximan, taxiID)     
+                    if occupants ~= nil then          -- Check if there is client in taxi
+                        SetPlayerPropertyValue(taximan, "TaxiOcupped", true, true)
+                        SetPlayerPropertyValue(taximan, "Occup", occupants, true)
+                        state = true
+                        for k, v in ipairs(occupants) do
+                            CallRemoteEvent(v, "course", state)
+                        end
+                        CallRemoteEvent(taximan, "course", state)
+                    else
+                        CallRemoteEvent(taximan, "MakeErrorNotification", _("no_player_in_vehicle"))
                     end
-                    CallRemoteEvent(player, "course", state)
-                    TaxiState = true
-                else
-                    CallRemoteEvent(player, "MakeErrorNotification", _("no_player_in_vehicle"))
                 end
             else
-                CallRemoteEvent(player, "MakeErrorNotification", _("not_driver"))
+                CallRemoteEvent(taximan, "MakeErrorNotification", _("not_driver"))
             end
         end
     else
-        CallRemoteEvent(player, "MakeErrorNotification", _("not_in_vehicle"))
+        CallRemoteEvent(taximan, "MakeErrorNotification", _("not_in_vehicle"))
     end
 end
 AddRemoteEvent("course:start", StartCourse)
@@ -259,11 +261,12 @@ end
 AddRemoteEvent("course:pause_unpause", PauseCourse)]]
 
 function StopCourse(player)
-    if TaxiState then
+    if GetPlayerPropertyValue(player, "TaxiOcupped") ~= nil and GetPlayerPropertyValue(player, "TaxiOcupped") then
         state = false
         CallRemoteEvent(player, "course", state)
         CallRemoteEvent(player, "MakeNotification", _("process_pay"), "linear-gradient(to right, #00b09b, #96c93d)")
-        for k, v in ipairs(occupants) do
+        occup = GetPlayerPropertyValue(player, "Occup")
+        for k, v in ipairs(occup) do
             CallRemoteEvent(v, "course", state)
             CallRemoteEvent(v, "MakeNotification", _("process_pay"), "linear-gradient(to right, #00b09b, #96c93d)")
         end
@@ -274,28 +277,30 @@ end
 AddRemoteEvent("course:stop", StopCourse)
 
 AddRemoteEvent("notifCash", function(player)
-    if TaxiState then
-        TaxiState = false
+    if GetPlayerPropertyValue(player, "TaxiOcupped") ~= nil and GetPlayerPropertyValue(player, "TaxiOcupped") then
+        SetPlayerPropertyValue(player, "TaxiOcupped", false, true)
         CallRemoteEvent(player, "MakeNotification", _("cash_taxi"), "linear-gradient(to right, #00b09b, #96c93d)")          -- Les joueurs doivent procéder au paiement depuis leur inventaires
         CallRemoteEvent(player, "HideTaxiHud")
-        for k, v in ipairs(occupants) do
+        occup = GetPlayerPropertyValue(player, "Occup")
+        SetPlayerPropertyValue(player, "Occup", nil, true)
+        for k, v in ipairs(occup) do
             CallRemoteEvent(v, "MakeNotification", _("cash_taxi"), "linear-gradient(to right, #00b09b, #96c93d)")
             CallRemoteEvent(v, "HideTaxiHud")
         end
-        occupants = nil     -- clear table
     end
 end)
 
 AddRemoteEvent("bankPay", function(player, CourseTime)
-    if TaxiState then
-        TaxiState = false
-        for k, v in ipairs(occupants) do
+    if GetPlayerPropertyValue(player, "TaxiOcupped") ~= nil and GetPlayerPropertyValue(player, "TaxiOcupped") then
+        SetPlayerPropertyValue(player, "TaxiOcupped", false, true)
+        occup = GetPlayerPropertyValue(player, "Occup")
+        SetPlayerPropertyValue(player, "Occup", nil, true)
+        for k, v in ipairs(occup) do
             PlayerData[v].bank_balance = PlayerData[v].bank_balance - CourseTime                -- On débite les clients
             PlayerData[player].bank_balance = PlayerData[player].bank_balance + CourseTime      -- On alimente le compte du chauffeur
             CallRemoteEvent(v, "MakeNotification", _("pay_success"), "linear-gradient(to right, #00b09b, #96c93d)")
         end
         CallRemoteEvent(player, "MakeNotification", _("pay_success"), "linear-gradient(to right, #00b09b, #96c93d)")
-        occupants = nil     -- clear table
     end
 end)
 
@@ -316,6 +321,7 @@ function TaxiGetClosestSpawnPoint(player)
 end
 
 function GetClientInTaxi(player, taxiID)
+    occupants = {}
     for i = 2, 4 do
         local passenger = GetVehiclePassenger(taxiID, i)
         if (passenger ~= 0) then
