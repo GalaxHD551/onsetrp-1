@@ -1,6 +1,8 @@
 local _ = function(k, ...) return ImportPackage("i18n").t(GetPackageName(), k, ...) end
 PlayerData = {}
 
+local TIMER_PERIODIC_CHECK_DEV_MODE = 15
+
 function OnPackageStart()
     -- Save all player data automatically
     CreateTimer(function()
@@ -9,6 +11,8 @@ function OnPackageStart()
             CheckForBansFromOutside(v)
         end
     end, 30000)
+
+    PeriodicCheckAllowedToPlay()
 end
 AddEvent("OnPackageStart", OnPackageStart)
 
@@ -106,7 +110,9 @@ function OnAccountCheckIpBan(player)
 end
 
 function CreatePlayerAccount(player)
-    local query = mariadb_prepare(sql, "INSERT INTO `accounts` (`id`, `steamid`, `name`, `clothing`, `police`, `medic`, `inventory`, `position`, `admin`, `health`, `health_state`, `death_pos`, `armor`, `thirst`, `hunger`, `bank_balance`, `created`, `phone_number`, `driver_license`, `gun_license`, `helicopter_license`, `taxi_license`, `drug_knowledge`, `job`, `is_cuffed`, `age`) VALUES (NULL, '?', 'Unregistered', '[]', '0', '0', '[]', '[]', '0', '100', 'alive', '', '0', '100', '100', '4900', '0', NULL, '0', '0', '0', '0', '[]', NULL, '0', '0');",
+
+    local query = mariadb_prepare(sql, "INSERT INTO `accounts` (`id`, `steamid`, `name`, `clothing`, `police`, `medic`, `inventory`, `position`, `admin`, `health`, `armor`, `thirst`, `hunger`, `bank_balance`, `created`, `phone_number`, `driver_license`, `gun_license`, `helicopter_license`, `taxi_license`, `drug_knowledge`, `job`, `is_cuffed`, `age`) VALUES (NULL, '?', 'Unregistered', '[]', '0', '0', '[]', '[]', '0', '100', '0', '100', '100', '4900', '0', NULL, '0', '0', '0', '0', '[]', NULL, '0', '0');",
+
         tostring(GetPlayerSteamId(player)))
     
     mariadb_query(sql, query, OnAccountCreated, player)
@@ -121,6 +127,7 @@ function OnAccountCreated(player)
     SetPlayerLoggedIn(player)
     SetAvailablePhoneNumber(player)
     setPositionAndSpawn(player, nil)
+    CheckDevMode(player)
     
     print("Account ID " .. PlayerData[player].accountid .. " created for " .. player)
 end
@@ -193,7 +200,47 @@ function OnAccountLoaded(player)
 
         LoadPlayerPhoneContacts(player)
         print("Account ID " .. PlayerData[player].accountid .. " loaded for " .. GetPlayerIP(player))
+        CheckDevMode(player)
     end
+end
+
+function CheckDevMode(player)
+    CallRemoteEvent(player, "account:checkdevmode")    
+end
+
+AddRemoteEvent("account:checkdevmode:result", function(player, result)    
+    if result == true and PlayerData[player].admin ~= 1 then
+        KickDevMode(player)
+    else
+        PlayerData[player].allowed_to_play = true        
+    end
+end)
+
+local timer
+function PeriodicCheckAllowedToPlay() 
+    print('→ PERIODIC CHECK FOR DEV MODE FOOLS INITIALIZED')
+    timer = CreateTimer(function()
+        for k,v in pairs(GetAllPlayers()) do
+            if PlayerData[v] ~= nil then
+                if PlayerData[player].is_online ~= 1 then return end
+                if PlayerData[v].admin ~= nil and PlayerData[v].admin == 1 then return end
+                if PlayerData[v].allowed_to_play == nil then return end
+                if PlayerData[v].allowed_to_play ~= true then
+                    KickDevMode(v)
+                end
+            end
+        end
+    end, TIMER_PERIODIC_CHECK_DEV_MODE * 1000)
+end
+
+function KickDevMode(player)
+    KickPlayer(player, _("disable_dev_mode"))
+    
+    local message = "→ KICKING "..player.." → "..GetPlayerSteamId(player).." BECAUSE DEV MODE"
+    if PlayerData[player] ~= nil then
+        message = message .. " - Name : "..PlayerData[player].name
+    end
+    print(message)
 end
 
 function setPositionAndSpawn(player)

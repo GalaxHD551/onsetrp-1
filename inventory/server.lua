@@ -3,6 +3,12 @@ local _ = function(k, ...) return ImportPackage("i18n").t(GetPackageName(), k, .
 local inventory_base_max_slots = 50
 local backpack_slot_to_add = 35
 
+local REPAIR_KIT_HEALTH = 2500
+local REPAIR_KIT_TIME = 20
+
+local JERICAN_FUEL_AMOUNT = 50
+local JERICAN_TIME = 15
+
 local droppedObjectsPickups = {}
 
 AddRemoteEvent("ServerPersonalMenu", function(player, inVehicle, vehiclSpeed)
@@ -202,46 +208,63 @@ AddRemoteEvent("UseInventory", function(player, originInventory, itemName, amoun
                 UseItem(player, originInventory, item, amount)
             end
             if itemName == "repair_kit" then
+                if GetPlayerVehicle(player) ~= 0 then
+                    CallRemoteEvent(player, "MakeErrorNotification", _("cant_while_driving"))
+                    return
+                end                
                 local nearestCar = GetNearestCar(player)
+                if not IsValidVehicle(nearestCar) then return end                
                 if nearestCar ~= 0 then
-                    if GetVehicleHealth(nearestCar) > 4000 then
+                    if GetVehicleHealth(nearestCar) >= 5000 then
                         CallRemoteEvent(player, "MakeErrorNotification", _("dont_need_repair"))
-                    elseif GetVehicleHoodRatio(nearestCar) < 5 and GetVehicleModel(nearestCar) ~= 10 and GetVehicleModel(nearestCar) ~= 24 then
-                        CallRemoteEvent(player, "MakeErrorNotification", _("need_to_open_hood"))
                     else
+                        RemoveInventory(originInventory, itemName, amount)
                         CallRemoteEvent(player, "LockControlMove", true)
                         SetPlayerAnimation(player, "COMBINE")
-                        Delay(4000, function()
-                            RemoveInventory(originInventory, itemName, amount)
-                            SetVehicleHealth(nearestCar, 5000)
-                            for i = 1, 8 do
-                                SetVehicleDamage(nearestCar, i, 0)
-                            end
+                        SetPlayerBusy(player)
+                        CallRemoteEvent(player, "loadingbar:show", _("repairing"), REPAIR_KIT_TIME)-- LOADING BAR
+                        Delay(REPAIR_KIT_TIME * 1000, function()
+                            SetVehicleHealth(nearestCar, GetVehicleHealth(nearestCar) + REPAIR_KIT_HEALTH)   
+                            local percentOfDamage = (1 - (GetVehicleHealth(nearestCar) / 5000)) or 0.5
+                            if percentOfDamage < 0 then percentOfDamage = 0 end
+                            if percentOfDamage > 1 then percentOfDamage = 1 end
+                            for j = 1, 8 do
+                                SetVehicleDamage(nearestCar, j, percentOfDamage)                 
+                            end 
+                            if GetVehicleHealth(nearestCar) > 5000 then SetVehicleHealth(nearestCar, 5000) end   
                             CallRemoteEvent(player, "LockControlMove", false)
                             SetPlayerAnimation(player, "STOP")
+                            SetPlayerNotBusy(player)
+                            CallRemoteEvent(player, "MakeNotification", _("repair_kit_vehicle_repaired"), "linear-gradient(to right, #00b09b, #96c93d)")
                         end)
                     end
                 end
             end
             if itemName == "jerican" then
-                if GetPlayerState(player) >= 2 then
-                    CallRemoteEvent(player, "MakeSuccessNotification", _("cant_while_driving"))
-                else
-                    local nearestCar = GetNearestCar(player)
-                    if nearestCar ~= 0 then
-                        if VehicleData[nearestCar].fuel >= 100 then
-                            CallRemoteEvent(player, "MakeErrorNotification", _("car_full"))
-                        else
-                            CallRemoteEvent(player, "LockControlMove", true)
-                            SetPlayerAnimation(player, "COMBINE")
-                            Delay(4000, function()
-                                RemoveInventory(originInventory, itemName, amount)
-                                VehicleData[nearestCar].fuel = 100
-                                CallRemoteEvent(player, "MakeSuccessNotification", _("car_refuelled"))
-                                CallRemoteEvent(player, "LockControlMove", false)
-                                SetPlayerAnimation(player, "STOP")
-                            end)
-                        end
+                if GetPlayerVehicle(player) ~= 0 then
+                    CallRemoteEvent(player, "MakeErrorNotification", _("cant_while_driving"))
+                    return
+                end 
+                local nearestCar = GetNearestCar(player)
+                if not IsValidVehicle(nearestCar) then return end                
+                if nearestCar ~= 0 then
+                    if VehicleData[nearestCar].fuel >= 100 then
+                        CallRemoteEvent(player, "MakeErrorNotification", _("car_full"))
+                    else
+                        RemoveInventory(originInventory, itemName, amount)
+                        CallRemoteEvent(player, "LockControlMove", true)
+                        SetPlayerAnimation(player, "COMBINE")
+                        SetPlayerBusy(player)
+                        CallRemoteEvent(player, "loadingbar:show", _("refuel"), JERICAN_TIME)-- LOADING BAR
+                        Delay(JERICAN_TIME * 1000, function()                            
+                            VehicleData[nearestCar].fuel = VehicleData[nearestCar].fuel + JERICAN_FUEL_AMOUNT   
+                            if VehicleData[nearestCar].fuel > 100 then VehicleData[nearestCar].fuel = 100 end
+                            SetVehiclePropertyValue(nearestCar, "fuel", VehicleData[nearestCar].fuel, true)
+                            CallRemoteEvent(player, "LockControlMove", false)
+                            SetPlayerAnimation(player, "STOP")
+                            SetPlayerNotBusy(player)
+                            CallRemoteEvent(player, "MakeNotification", _("car_refuelled_for", JERICAN_FUEL_AMOUNT, 'L'), "linear-gradient(to right, #00b09b, #96c93d)")
+                        end)
                     end
                 end
             end
@@ -501,10 +524,12 @@ function RemoveInventory(inventoryId, item, amount, drop, player)
             weapon = getWeaponID(item)
             
             if weapon ~= 0 then
-                for slot, v in pairs({1, 2, 3}) do
-                    local slotWeapon, ammo = GetPlayerWeapon(player, slot)
-                    if slotWeapon == tonumber(weapon) then
-                        UnequipWeapon(player, originInventory, itemName, slot)
+                if drop ~= 1 then
+                    for slot, v in pairs({1, 2, 3}) do
+                        local slotWeapon, ammo = GetPlayerWeapon(player, slot)
+                        if slotWeapon == tonumber(weapon) then
+                            UnequipWeapon(player, originInventory, itemName, slot)
+                        end
                     end
                 end
             end
@@ -606,17 +631,53 @@ AddRemoteEvent("ObjectDrop", function(player, bool, item, amount)
             ObjectID = 1010
         elseif item == "tree_log" or item == "wood_plank" or item == "treated_wood_plank" then
             ObjectID = 1575
-            sx, sy, sz = 0.5, 0.5, 0.5
+            sx, sy, sz = 0.2, 0.2, 0.2
+        elseif item == "defibrillator" then
+            ObjectID = 1715
+        elseif item == "adrenaline_syringe" then
+            ObjectID = 805
+            sx, sy, sz = 2.0 ,2.0 , 2.0
+        elseif item == "bandage" then
+            ObjectID = 803
+            sx, sy, sz = 2.0 ,2.0 , 2.0
+        elseif item == "cocaine" then
+            ObjectID = 799
+            sx, sy, sz = 1.5, 1.5, 1.5
+            rx = 180
+            z = z + 10
+        elseif string.find(item, 'mask_') then
+            if item == 'mask_1' then
+                ObjectID = 463
+                rx = 90
+                z = z + 3
+            elseif item == 'mask_2' then
+                ObjectID = 455
+                rx = 90
+                z = z + 12
+            elseif item == 'mask_3' then
+                ObjectID = 1451
+                rx = 80
+                z = z + 12
+            elseif item == 'mask_4' then
+                ObjectID = 1452
+                rx = 90
+                z = z - 10
+            end
+            if PlayerData[player][item] then
+                SetPlayerPropertyValue(player, "WearingItem", nil, true)
+                DestroyObject(PlayerData[player][item])
+                PlayerData[player][item] = nil
+            end
         end
         SetPlayerAnimation(player, "CHECK_EQUIPMENT")
-        objetdrop = CreateObject(ObjectID, x, y, z - 95, rx, ry, rz)
+        objetdrop = CreateObject(ObjectID, x, y, z - 100, rx, ry, rz)
         SetObjectScale(objetdrop, sx, sy, sz)
         text = CreateText3D(_(item).." x"..amount, 15, x, y, z, 0,0,0)
         SetObjectPropertyValue(objetdrop, "isitem", true, true)
         SetObjectPropertyValue(objetdrop, "collision", false, true)
         SetObjectPropertyValue(objetdrop, "item", item, true)
         SetObjectPropertyValue(objetdrop, "amount", amount, true)
-        SetText3DPropertyValue(text, "textitem", true, true)
+        SetObjectPropertyValue(objetdrop, "textid", text)
     end
 
     Delay(300000, function(objetdrop, text)
