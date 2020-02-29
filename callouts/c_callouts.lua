@@ -2,8 +2,8 @@ local Dialog = ImportPackage("dialogui")
 local _ = function(k, ...) return ImportPackage("i18n").t(GetPackageName(), k, ...) end
 
 local wpObject
-local wptaxi
 local currentCallout
+local wplocation = {}
 
 local calloutsUI = nil
 
@@ -79,58 +79,48 @@ function CloseCallout(player)
 end
 AddEvent("callouts:ui:close", CloseCallout)
 
-AddRemoteEvent("callouts:createwp", function(target, x, y, z, label)
+AddRemoteEvent("callouts:createtaxiwp", function(x, y, z, label)
+    taxiwp = CreateWaypoint(x, y, z, tostring(label))
+    GetPickupStaticMeshComponent(pickup):SetHiddenInGame(true)
+    Delay(360000, function()
+        if taxiwp ~= nil then
+            DestroyWaypoint(taxiwp)
+        end
+    end)
+end)
+
+AddRemoteEvent("callouts:createwp", function(x, y, z, label)
     if wpObject ~= nil then DestroyWaypoint(wpObject) end
     currentCallout = target
     wpObject = CreateWaypoint(x, y, z, tostring(label))
 
-    CallEvent("UpdateCalloutDestination", x, y)
-    
+    CallEvent("UpdateCalloutDestination", x, y)    
 end)
 
 AddRemoteEvent("callouts:cleanwp", function()
     currentCallout = nil
     if wpObject ~= nil then DestroyWaypoint(wpObject) end
     wpObject = nil
-
     CallEvent("ClearCalloutDestination")
 end)
 
-
 -- TAXI WAYPOINT
 
---[[AddRemoteEvent("callouts:createwptaxi", function(target, x, y, z, label)
-    if wptaxi ~= nil then DestroyWaypoint(wptaxi) end
-    currentCallout = target
-    wptaxi = CreateWaypoint(x, y, z, tostring(label))
-    StockWayptnID(target, wptaxi)
-    CallEvent("UpdateCalloutDestination", x, y)
-    
-end)
-
-AddRemoteEvent("callouts:destroywptaxi", function(waypt)
-    currentCallout = nil
-    if waypt ~= nil then DestroyWaypoint(waypt) end
-        waypt = nil
-    end
-end)
-
-function StockWayptnID(target, wptaxi)
-    if wpObject ~= nil then
-        waypt = wptaxi
-        caller = target
-    else
-        CallRemoteEvent("DestroyWp", waypt, caller)
-    end
-end
-
-AddEvent("OnPlayerStartEnterVehicle", function(vehicle, seat)
-    if GetPlayerPropertyValue("Caller") then
-        local vehicleID = GetVehicleModel(vehicle)
-        if vehicleID == 2 then
-            if seatId ~= 0 then
-                StockWayptnID()
-            end
+AddRemoteEvent("DestroyTaxiWP", function(pickup)
+    local px, py, pz = GetPickupLocation(pickup)
+    for k, v in pairs(GetAllWaypoints()) do
+        local wx, wy, wz = GetWaypointLocation(v)
+        local distance = GetDistance3D(px, py, pz, wx, wy, wz)
+        if distance < 30 then
+            DestroyWaypoint(v)
+            CallRemoteEvent("DestroyPickup", pickup)
+            break
         end
     end
-end)]]
+end)
+
+AddEvent("OnPickupStreamIn", function(pickup)
+    if GetPickupPropertyValue(pickup, "TaxiCall") then
+        GetPickupStaticMeshComponent(pickup):SetHiddenInGame(true)
+    end
+end)
