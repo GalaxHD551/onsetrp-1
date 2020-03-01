@@ -525,11 +525,10 @@ function RemoveInventory(inventoryId, item, amount, drop, player)
             
             if weapon ~= 0 then
                 if drop ~= 1 then
-                    local originInventory = player
                     for slot, v in pairs({1, 2, 3}) do
                         local slotWeapon, ammo = GetPlayerWeapon(player, slot)
                         if slotWeapon == tonumber(weapon) then
-                            UnequipWeapon(player, originInventory, item, slot)
+                            UnequipWeapon(player, player, item, slot)
                             UpdateUIInventory(player, inventoryId, item, 0)
                         end
                     end
