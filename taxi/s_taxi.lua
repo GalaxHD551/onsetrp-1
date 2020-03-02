@@ -140,7 +140,7 @@ function CheckBank(player)
         return
     end
     
-    -- #2 Check if the player has money for commission
+    -- #2 Check if the player has money for caution
     if CAUTION > PlayerData[player].bank_balance then
         CallRemoteEvent(player, "MakeErrorNotification", _("no_money_car"))
     else
