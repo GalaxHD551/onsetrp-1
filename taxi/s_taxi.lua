@@ -1,7 +1,7 @@
 local _ = function(k, ...) return ImportPackage("i18n").t(GetPackageName(), k, ...) end
 
 local MAX_TAXI = 10 -- Number of taximens at the same time
-local ALLOW_RESPAWN_VEHICLE = true -- Allow the respawn of the vehicle by destroying the previously spawned one. (Can break RP if the car is stolen or need repairs or fuel)
+local ALLOW_RESPAWN_VEHICLE = false -- Allow the respawn of the vehicle by destroying the previously spawned one. (Can break RP if the car is stolen or need repairs or fuel)
 local CAUTION = 1500 -- Amount of the caution
 
 local occupants = {}
@@ -34,7 +34,7 @@ AddEvent("OnPackageStart", function()
         table.insert(taxiNpcIds, v.npcObject)
     end
     
-    if ALLOW_RESPAWN_VEHICLE then
+    if ALLOW_RESPAWN_VEHICLE == false then
         for k, v in pairs(TAXI_GARAGE) do
             v.garageObject = CreatePickup(2, v.x, v.y, v.z)
             table.insert(taxiGarageIds, v.garageObject)
@@ -299,7 +299,9 @@ AddRemoteEvent("bankPay", function(player, CourseTime)
             PlayerData[v].bank_balance = PlayerData[v].bank_balance - CourseTime                -- On débite les clients
             PlayerData[player].bank_balance = PlayerData[player].bank_balance + CourseTime      -- On alimente le compte du chauffeur
             CallRemoteEvent(v, "MakeNotification", _("pay_success"), "linear-gradient(to right, #00b09b, #96c93d)")
+            CallRemoteEvent(v, "HideTaxiHud")
         end
+        CallRemoteEvent(player, "HideTaxiHud")
         CallRemoteEvent(player, "MakeNotification", _("pay_success"), "linear-gradient(to right, #00b09b, #96c93d)")
     end
 end)

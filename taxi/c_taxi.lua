@@ -146,7 +146,7 @@ end
 AddRemoteEvent("course", function(state)
     if state then
         SetWebVisibility(TaxiHud, WEB_HITINVISIBLE)
-        local CourseTime = 0
+        CourseTime = 0
         ExecuteWebJS(TaxiHud, "StartCourse("..CourseTime..");")
         taxicourse = CreateTimer(function(player)
             CourseTime = CourseTime + 1
