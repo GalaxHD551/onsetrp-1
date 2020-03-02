@@ -116,19 +116,19 @@ end
 
 --------- SERVICE END
 --------- TAXI VEHICLE
---[[function CheckCash(player)
+function CheckCash(player)
         -- #1 Check if the player has the taxi job
         if PlayerData[player].job ~= "taxi" then
             CallRemoteEvent(player, "MakeErrorNotification", _("not_taxi"))
             return
         end
         
-        -- #2 Check if the player has money for commission
+        -- #2 Check if the player has money for caution
         if CAUTION > GetPlayerCash(player) then
             CallRemoteEvent(player, "MakeErrorNotification",_("no_money_car"))
         else
-            paiement = "cash" 
-            CallEvent("SpawnTaxiCar", player, paiement)                                     CAUTION FOR TAXI VEHICLE
+            SetPlayerPropertyValue(player, "caution", "cash", true)
+            CallEvent("SpawnTaxiCar", player)
         end
 end
 AddRemoteEvent("taxi:checkcash", CheckCash)       
@@ -144,18 +144,18 @@ function CheckBank(player)
     if CAUTION > PlayerData[player].bank_balance then
         CallRemoteEvent(player, "MakeErrorNotification", _("no_money_car"))
     else
-        paiement = "bank"
-        CallEvent("SpawnTaxiCar", player, paiement)
+        SetPlayerPropertyValue(player, "caution", "bank", true)
+        CallEvent("SpawnTaxiCar", player)
     end  
 end
-AddRemoteEvent("taxi:checkbank", CheckBank)]] 
+AddRemoteEvent("taxi:checkbank", CheckBank)
 
 function SpawnTaxiCar(player)
-        -- #1 Check if the player has the taxi job
+        --[[ #1 Check if the player has the taxi job
         if PlayerData[player].job ~= "taxi" then
-            CallRemoteEvent(player, "MakeErrorNotification", _("not_taxi"))
+            CallRemoteEvent(player, "MakeErrorNotification", _("not_taxi"))     -- Already checked before
             return
-        end
+        end]]
 
     -- #2 Check if the player has a job vehicle spawned then destroy it
     if PlayerData[player].job_vehicle ~= nil and ALLOW_RESPAWN_VEHICLE then
@@ -182,17 +182,17 @@ function SpawnTaxiCar(player)
         CreateVehicleData(player, vehicle, 2)
         SetVehicleRespawnParams(vehicle, false)
         SetVehiclePropertyValue(vehicle, "locked", true, true)
-        --[[if paiement == "cash" then
+        if GetPlayerPropertyValue(player, "caution") == "cash" then
             RemovePlayerCash(player, CAUTION)
-        elseif paiement == "bank" then
+        elseif GetPlayerPropertyValue(player, "caution") == "bank" then
             PlayerData[player].bank_balance = PlayerData[player].bank_balance - CAUTION
-        end]]
+        end
         CallRemoteEvent(player, "MakeNotification", _("spawn_vehicle_success", " taxi car"), "linear-gradient(to right, #00b09b, #96c93d)")
     else
         CallRemoteEvent(player, "MakeErrorNotification", _("cannot_spawn_vehicle"))
     end
 end
-AddRemoteEvent("taxi:spawnvehicle", SpawnTaxiCar)
+AddEvent("taxi:spawnvehicle", SpawnTaxiCar)
 
 function DespawnTaxiCar(player)
     -- Check if the player has a job vehicle spawned then destroy it
@@ -200,7 +200,12 @@ function DespawnTaxiCar(player)
         DestroyVehicle(PlayerData[player].job_vehicle)
         DestroyVehicleData(PlayerData[player].job_vehicle)
         PlayerData[player].job_vehicle = nil
-        --PlayerData[player].bank_balance = PlayerData[player].bank_balance + CAUTION
+        if GetPlayerPropertyValue(player, "caution") == "cash" then
+            AddPlayerCash(player, CAUTION)
+        else
+            PlayerData[player].bank_balance = PlayerData[player].bank_balance + CAUTION
+        end
+        SetPlayerPropertyValue(player, "caution", nil, true)
         CallRemoteEvent(player, "MakeNotification", _("vehicle_stored"), "linear-gradient(to right, #00b09b, #96c93d)")
         return
     end
@@ -267,6 +272,17 @@ AddRemoteEvent("course:start", StartCourse)
     CallRemoteEvent(player, "course", state)
 end
 AddRemoteEvent("course:pause_unpause", PauseCourse)]]
+
+function CancelCourse(player)
+    if GetPlayerPropertyValue(player, "TaxiOccuped") then
+        occup = GetPlayerPropertyValue(player, "Occup")
+        for k, v in pairs(occup) do
+            CallRemoteEvent(v, "cancelcourse")
+        end
+        CallRemoteEvent(v, "cancelcourse")
+    end
+end
+AddRemoteEvent("course:cancel", CancelCourse)
 
 function StopCourse(player)
     if GetPlayerPropertyValue(player, "TaxiOcupped") ~= nil and GetPlayerPropertyValue(player, "TaxiOcupped") then
