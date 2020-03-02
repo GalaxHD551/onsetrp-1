@@ -2,7 +2,7 @@
 -- https://github.com/Bad57/ragP
 
 AddEvent("OnPlayerStartExitVehicle", function(vehicle)
-    if not GetVehiclePropertyValue(nearestCar, "locked") then
+    if not GetVehiclePropertyValue(vehicle, "locked") then
         local currentspeed = GetVehicleForwardSpeed(vehicle)
         CallRemoteEvent("RagdollPlayer", currentspeed,vehicle)
      end
