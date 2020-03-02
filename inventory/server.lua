@@ -530,6 +530,7 @@ function RemoveInventory(inventoryId, item, amount, drop, player)
                         if slotWeapon == tonumber(weapon) then
                             UnequipWeapon(player, inventoryId, item, slot)
                             UpdateUIInventory(player, inventoryId, item, 0)
+
                         end
                     end
                 end
