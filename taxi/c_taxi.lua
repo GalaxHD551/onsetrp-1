@@ -37,10 +37,10 @@ end)
 
 AddEvent("OnTranslationReady", function()
         -- TAXI MENU
-        taxiMenu = Dialog.create(_("taxi_menu"), nil, _("start_course"), _("end_course"), _("payement"), --[[_("callouts"), _("callouts_menu_end_callout"),]] _("cancel"))
-
+        taxiMenu = Dialog.create(_("taxi_menu"), nil, _("start_course"), _("end_course"),  _("cancel_course"), _("payement"), _("cancel"))
+        
         -- SPAWN VEHICLE MENU
-        taxiNpcGarageMenu = Dialog.create(_("taxi_garage_menu"), nil, _("spawn_taxi_car"), _("cancel"))
+        taxiNpcGarageMenu = Dialog.create(_("taxi_garage_menu"), nil, _("spawn_taxi_cash"), _("spawn_taxi_bank"), _("cancel"))
 
         -- PAYEMENT MENU
         taxiPayMenu = Dialog.create(_("payement menu"), nil, _("payin_cash"), _("payin_bank"), _("cancel"))
@@ -101,25 +101,22 @@ AddEvent("OnDialogSubmit", function(dialog, button, ...)
         if button == 2 then -- stop course
             CallRemoteEvent("course:stop")
         end
-        if button == 3 then
+        if button == 3 then   -- cancel course
+            CallRemoteEvent("course:cancel")
+        end
+        if button == 4 then
             Dialog.show(taxiPayMenu)
         end
-        --[[if button == 4 then -- take callout
-            CallEvent("callouts:openingmenu")                        
-        end
-        if button == 5 then -- end callout
-            CallEvent("callouts:stoppingcallout")         
-        end]]
     end
     
     if dialog == taxiNpcGarageMenu then
         if button == 1 then
-            CallRemoteEvent("taxi:spawnvehicle")
+            CallRemoteEvent("taxi:checkcash")
         end
-        --[[if button == 2 then
+        if button == 2 then
             CallRemoteEvent("taxi:checkbank")
-        end]]
-    end
+        end
+    end 
 
     if dialog == taxiPayMenu then
         if button == 1 then
@@ -159,4 +156,16 @@ end)
 
 AddRemoteEvent("HideTaxiHud", function()
     SetWebVisibility(TaxiHud, WEB_HIDDEN)
+end)
+
+AddRemoteEvent("cancelcourse", function()
+    if GetWebVisibility(TaxiHud) == 0 then
+        SetWebVisibility(WEB_HITINVISIBLE)
+    end
+    DestroyTimer(taxicourse)
+    local CourseTime = 0
+    ExecuteWebJS(TaxiHud, "StartCourse("..CourseTime..");")
+    Delay(1000, function()
+        SetWebVisibility(TaxiHud, WEB_HIDDEN)
+    end)
 end)
