@@ -53,6 +53,14 @@ AddEvent("OnPlayerJoin", function(player)
     CallRemoteEvent(player, "taxi:setup", taxiNpcIds, taxiGarageIds, taxiVehicleNpcIds)
 end)
 
+AddEvent("job:onspawn", function(player)
+    --PlayerData[player].job_vehicle = trucksOnLocation[PlayerData[player].accountid] -- Pour récupérer la propriété du véhicule de prêt
+    if PlayerData[player].job == "taxi" then -- Anti glitch
+        CallRemoteEvent(player, "taxi:client:isonduty", true)
+    end
+end)
+
+
 --------- SERVICE
 function TaxiStartStopService(player)
     if PlayerData[player].job == "" then

@@ -44,9 +44,6 @@ AddEvent("OnPlayerSteamAuth", OnPlayerSteamAuth)
 
 function OnPlayerQuit(player)
     PlayerData[player].is_online = 0
-    if PlayerData[player].job == "taxi" or PlayerData[player].job == "delivery" then
-        PlayerData[player].job = ""
-    end
     SavePlayerAccount(player)
     GatheringCleanPlayerActions(player)-- → Gathering
     DestroyPlayerData(player)
