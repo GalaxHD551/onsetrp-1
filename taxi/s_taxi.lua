@@ -50,7 +50,7 @@ AddEvent("OnPackageStart", function()
 end)
 
 AddEvent("OnPlayerJoin", function(player)
-    CallRemoteEvent(player, "taxi:setup", taxiNpcIds, taxiGarageIds, taxiVehicleNpcIds)
+    CallRemoteEvent(player, "taxi:setup", taxiNpcIds, taxiGarageIds, taxiVehicleNpcIds, CAUTION)
 end)
 
 AddEvent("job:onspawn", function(player)
@@ -128,7 +128,7 @@ function CheckCash(player)
             CallRemoteEvent(player, "MakeErrorNotification",_("no_money_car"))
         else
             SetPlayerPropertyValue(player, "caution", "cash", true)
-            CallEvent("SpawnTaxiCar", player)
+            SpawnTaxiCar(player)
         end
 end
 AddRemoteEvent("taxi:checkcash", CheckCash)       
@@ -145,7 +145,7 @@ function CheckBank(player)
         CallRemoteEvent(player, "MakeErrorNotification", _("no_money_car"))
     else
         SetPlayerPropertyValue(player, "caution", "bank", true)
-        CallEvent("SpawnTaxiCar", player)
+        SpawnTaxiCar(player)
     end  
 end
 AddRemoteEvent("taxi:checkbank", CheckBank)
@@ -279,7 +279,7 @@ function CancelCourse(player)
         for k, v in pairs(occup) do
             CallRemoteEvent(v, "cancelcourse")
         end
-        CallRemoteEvent(v, "cancelcourse")
+        CallRemoteEvent(player, "cancelcourse")
     end
 end
 AddRemoteEvent("course:cancel", CancelCourse)

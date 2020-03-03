@@ -649,8 +649,8 @@
     "taxi_job": "Chauffeur de taxi",
     "taxi_menu": "Menu Taxi",
     "taxi_garage_menu": "Garage taxi",
-    "spawn_taxi_cash": "Sortir un taxi (Caution [1500€] en liquide)",
-    "spawn_taxi_bank": "Sortir un taxi (Caution [1500€] depuis le compte bancaire)",
+    "spawn_taxi_cash": "Sortir taxi (Caution en cash)",
+    "spawn_taxi_bank": "Sortir taxi (Caution en banque)",
     "quit_taxi": "Vous n'êtes plus chauffeur de taxi",
     "taxi_npc_message_stop": "Quoi ?! Tu veux déjà nous quitter ?",
     "taxi_npc_message_start": "Bonjour, tu souhaites devenir chauffeur de taxi ?",
@@ -676,5 +676,6 @@
     "pay_success": "La transaction a été effectué avec succes",
     "no_current_course": "Il n'y a pas de course en cours !",
     "taxi_callout_created": "Les taxis ont reçu votre appels",
-    "taxi_waypoint_label": "Taxi"
+    "taxi_waypoint_label": "Taxi",
+    "taxi_disclaimer_caution": "Une caution de {1} $ est nécessaire pour utiliser un taxi. Vous les retrouverez une fois le taxi rendu."
 }

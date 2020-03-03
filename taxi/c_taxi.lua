@@ -15,6 +15,8 @@ local taxiGarageIds = {}
 
 local TaxiHud
 
+local cautionTaxi = 0
+
 function OnPackageStart()
     TaxiHud = CreateWebUI(0, 0, 0, 0, 0, 60)
     SetWebAlignment(TaxiHud, 1.0, 0.0)
@@ -25,10 +27,14 @@ end
 AddEvent("OnPackageStart", OnPackageStart)
 
 
-AddRemoteEvent("taxi:setup", function(_taxiNpcIds, _taxiGarageIds, _taxiVehicleNpcIds)
+AddRemoteEvent("taxi:setup", function(_taxiNpcIds, _taxiGarageIds, _taxiVehicleNpcIds, _caution)
     taxiNpcIds = _taxiNpcIds
     taxiGarageIds = _taxiGarageIds
     taxiVehicleNpcIds = _taxiVehicleNpcIds
+    cautionTaxi = _caution
+
+    -- SPAWN VEHICLE MENU
+    taxiNpcGarageMenu = Dialog.create(_("taxi_garage_menu"), _("taxi_disclaimer_caution", cautionTaxi), _("spawn_taxi_cash"), _("spawn_taxi_bank"), _("cancel"))
 end)
 
 AddRemoteEvent("taxi:client:isonduty", function(isOnDuty)
@@ -38,9 +44,6 @@ end)
 AddEvent("OnTranslationReady", function()
         -- TAXI MENU
         taxiMenu = Dialog.create(_("taxi_menu"), nil, _("start_course"), _("end_course"),  _("cancel_course"), _("payement"), _("cancel"))
-        
-        -- SPAWN VEHICLE MENU
-        taxiNpcGarageMenu = Dialog.create(_("taxi_garage_menu"), nil, _("spawn_taxi_cash"), _("spawn_taxi_bank"), _("cancel"))
 
         -- PAYEMENT MENU
         taxiPayMenu = Dialog.create(_("payement menu"), nil, _("payin_cash"), _("payin_bank"), _("cancel"))
